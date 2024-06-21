@@ -16,3 +16,5 @@
 **/.cpcache
 **/.clj-kondo
 **/.lsp
+
+**/.direnv
