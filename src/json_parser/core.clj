@@ -183,14 +183,16 @@
   {:post [(s/valid? :parser/array %)]}
   (loop [arr []]
     (let [_ (consume-ws reader)
-          _ (.mark reader 1)
-          c (read-char reader)]
-      (case c
-        \] arr
-        \, (recur arr)
+          _ (.mark reader 1)]
+      (if (= (read-char reader) \])
+        arr
         (let [_ (.reset reader)
-              val (read-val reader)]
-          (recur (conj arr val)))))))
+              arr (conj arr (read-val reader))
+              _ (consume-ws reader)]
+          (case (read-char reader)
+            \, (recur arr)
+            \] arr
+            (throw (Exception. (str "No comma or left bracket found after array value.")))))))))
 
 (defn- read-object
   "Parses the attributes of a JSON object and builds a map from the
@@ -200,8 +202,12 @@
   (loop [obj {}]
     (let [_ (consume-ws reader)]
       (case (read-char reader)
-        \" (recur (merge obj (read-attribute reader)))
-        \, (recur obj)
+        \" (let [obj (merge obj (read-attribute reader))
+                 _ (consume-ws reader)]
+             (case (read-char reader)
+               \, (recur obj)
+               \} obj
+               (throw (Exception. (str "No comma or left brace found after object field.")))))
         \} obj))))
 
 (defn- read-json

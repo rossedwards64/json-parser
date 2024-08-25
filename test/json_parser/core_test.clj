@@ -56,6 +56,8 @@
 (def invalid-attribute "{ \"name\" \"Ross\" }")
 (def invalid-decimal-number "{\"age\":21.}")
 (def invalid-standard-form-number "{\"age\":21e}")
+(def obj-missing-commas "{\"obj\":{\"name\":\"Ross\" \"age\":21}}")
+(def array-missing-commas "{\"array\":[1 2 3]}")
 
 (deftest failure
   (testing "Ill-formed JSON throws the correct exception"
@@ -64,4 +66,8 @@
     (is (thrown-with-msg? Exception #".*It includes separator \..*"
                           (parser/parse-json-string invalid-decimal-number)))
     (is (thrown-with-msg? Exception #".*It includes separator e.*"
-                          (parser/parse-json-string invalid-standard-form-number)))))
+                          (parser/parse-json-string invalid-standard-form-number)))
+    (is (thrown-with-msg? Exception #".*No comma or left brace.*"
+                          (parser/parse-json-string obj-missing-commas)))
+    (is (thrown-with-msg? Exception #".*No comma or left bracket.*"
+                          (parser/parse-json-string array-missing-commas)))))
